@@ -1,4 +1,5 @@
 import java.net.*;
+import java.net.http.*;
 
 public class NetworkInspector{
     public static void main(String[] domain) {
@@ -22,6 +23,20 @@ public class NetworkInspector{
             } catch (UnknownHostException e) {
                 System.out.println("DNS lookup failed for: " + host);
                 return;
+            }
+
+            //HTTPS request
+            try {
+                HttpResponse<byte[]> response = HttpClient.newHttpClient().send(
+                    HttpRequest.newBuilder(URI.create("https://" + host)).build(),
+
+                    HttpResponse.BodyHandlers.ofByteArray());
+                    
+                System.out.println("Status: " + response.statusCode());
+            }           
+            
+            catch (Exception e) {
+                System.out.println("HTTPS failed: " + e.getMessage());
             }
     }
 }
