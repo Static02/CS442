@@ -9,6 +9,9 @@ public class NetworkInspector{
             }
             String host = domain[0];
 
+
+            //HTTP Connection
+
             try {
                 InetAddress[] resolvedList = InetAddress.getAllByName(host);
                 //resolver requst to translate host name
@@ -21,22 +24,33 @@ public class NetworkInspector{
                 }
 
             } catch (UnknownHostException e) {
-                System.out.println("DNS lookup failed for: " + host);
+                System.out.println("DNS lookup failed for: " + host);// Catch gaurd
                 return;
             }
 
-            //HTTPS request
+            //HTTPS request/reponce
             try {
-                HttpResponse<byte[]> response = HttpClient.newHttpClient().send(
-                    HttpRequest.newBuilder(URI.create("https://" + host)).build(),
+                HttpClient client = HttpClient.newBuilder()
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .build();
 
-                    HttpResponse.BodyHandlers.ofByteArray());
-                    
-                System.out.println("Status: " + response.statusCode());
-            }           
-            
+                HttpRequest request = HttpRequest.newBuilder(URI.create("https://" + host)).build();
+                HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                String tlsVersion = response.sslSession().get().getProtocol();//Calls from import lib
+                int size = response.body().length;
+
+                //Text Builder based off of the homework example.
+                System.out.println("\nHTTPS Conncetion Sucessful\n");
+                System.out.println("Status Code:\n" + response.statusCode() + "\n");
+                System.out.println("TLS Version:\n" + tlsVersion + "\n");
+                System.out.println("Response Size:\n" + size + " bytes");
+            }
+
             catch (Exception e) {
                 System.out.println("HTTPS failed: " + e.getMessage());
             }
+
+
     }
 }
